@@ -1,10 +1,10 @@
 name = "jaredzhou/mooncedar"
 
-version = "0.1.1"
+version = "0.1.2"
 
 license = "Apache-2.0"
 
-repository = "https://github.com/jaredzhou/moonbase"
+repository = "https://github.com/jaredzhou/mooncedar"
 
 readme = "README.md"
 
