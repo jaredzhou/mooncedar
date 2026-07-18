@@ -140,7 +140,7 @@ let src = stringify(policies)
 
 ## Status
 
-- **572 tests** passing (parser, evaluator, authorizer, JSON, reauthorize, RequestJSON)
+- **494 tests** passing (parser, evaluator, authorizer, JSON, reauthorize, RequestJSON)
 - Entity stores as pluggable `pub(open)` traits
 - JSON serialization (Cedar-compatible format) for entities and requests
 - Policy validation
