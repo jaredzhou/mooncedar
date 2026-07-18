@@ -5,7 +5,7 @@ A [Cedar](https://www.cedarpolicy.com) policy engine implemented in MoonBit — 
 ## Installation
 
 ```bash
-moon add jaredzhou/mooncedar@0.1.1
+moon add jaredzhou/mooncedar@0.1.2
 ```
 
 ## Quick Start
