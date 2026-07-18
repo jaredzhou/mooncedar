@@ -1,0 +1,15 @@
+# Build artifacts
+_build/
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# MoonBit lock
+.moon-lock
+
+# Coverage logs (project-specific tooling)
+uncovered.log

@@ -1,0 +1,260 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "jaredzhou/mooncedar/ast"
+
+import {
+  "moonbitlang/core/debug",
+  "moonbitlang/core/json",
+}
+
+// Values
+pub fn default() -> Policy
+
+pub fn entity_type(String) -> EntityType
+
+pub fn entity_uid(String, String) -> EntityUID
+
+pub fn expr_action() -> Expr
+
+pub fn expr_bool(Bool) -> Expr
+
+pub fn expr_context() -> Expr
+
+pub fn expr_euid(String, String) -> Expr
+
+pub fn expr_ext_call(Name, Array[Expr]) -> Expr
+
+pub fn expr_if(Expr, Expr, Expr) -> Expr
+
+pub fn expr_is_empty(Expr) -> Expr
+
+pub fn expr_long(Int64) -> Expr
+
+pub fn expr_neg(Expr) -> Expr
+
+pub fn expr_not(Expr) -> Expr
+
+pub fn expr_principal() -> Expr
+
+pub fn expr_record(Array[(String, Expr)]) -> Expr
+
+pub fn expr_resource() -> Expr
+
+pub fn expr_set(Array[Expr]) -> Expr
+
+pub fn expr_str(String) -> Expr
+
+pub fn expr_unknown(String) -> Expr
+
+pub fn validate_policies(Array[Policy]) -> Unit raise ValidationError
+
+pub fn validate_policy(Policy) -> Unit raise ValidationError
+
+// Errors
+pub(all) suberror ValidationError {
+  ValidationError(String, String)
+} derive(@debug.Debug)
+
+// Types and methods
+pub(all) struct Annotation {
+  key : String
+  value : String
+} derive(Eq, @debug.Debug)
+
+pub(all) enum BinaryOp {
+  Eq
+  Ne
+  Less
+  LessEq
+  Gt
+  Ge
+  Add
+  Sub
+  Mul
+  In_
+  Contains
+  ContainsAll
+  ContainsAny
+} derive(Eq, @debug.Debug)
+
+pub(all) struct Condition {
+  kind : ConditionKind
+  body : Expr
+} derive(Eq, @debug.Debug)
+
+pub(all) enum ConditionKind {
+  When
+  Unless
+} derive(Eq, @debug.Debug)
+
+pub(all) struct Entity {
+  uid : EntityUID
+  attrs : Map[String, Value]
+  tags : Map[String, Value]
+  parents : Array[EntityUID]
+} derive(Eq, @debug.Debug)
+pub impl ToJson for Entity
+pub impl @json.FromJson for Entity
+
+pub(all) struct EntityType(String) derive(Eq, ToJson, @debug.Debug, @json.FromJson)
+
+pub(all) struct EntityUID {
+  type_ : String
+  id : String
+} derive(Eq, Hash, @debug.Debug)
+pub impl ToJson for EntityUID
+pub impl @json.FromJson for EntityUID
+
+pub(all) enum Expr {
+  Lit(Literal)
+  Var(VarKind)
+  If(Expr, Expr, Expr)
+  And(Expr, Expr)
+  Or(Expr, Expr)
+  UnaryApp(UnaryOp, Expr)
+  BinaryApp(BinaryOp, Expr, Expr)
+  GetAttr(Expr, String)
+  HasAttr(Expr, String)
+  GetTag(Expr, Expr)
+  HasTag(Expr, Expr)
+  Like(Expr, Pattern)
+  Is(Expr, EntityType)
+  Set(Array[Expr])
+  Record(Array[(String, Expr)])
+  ExtensionApp(Name, Array[Expr])
+  Slot(String)
+  Unknown(String, Type?)
+} derive(Eq, @debug.Debug)
+pub fn Expr::access(Self, String) -> Self
+pub fn Expr::add(Self, Self) -> Self
+pub fn Expr::and_(Self, Self) -> Self
+pub fn Expr::contains(Self, Self) -> Self
+pub fn Expr::contains_all(Self, Self) -> Self
+pub fn Expr::contains_any(Self, Self) -> Self
+pub fn Expr::eq(Self, Self) -> Self
+pub fn Expr::ge(Self, Self) -> Self
+pub fn Expr::get_tag(Self, Self) -> Self
+pub fn Expr::gt(Self, Self) -> Self
+pub fn Expr::has(Self, String) -> Self
+pub fn Expr::has_tag(Self, Self) -> Self
+pub fn Expr::in_(Self, Self) -> Self
+pub fn Expr::is_(Self, EntityType) -> Self
+pub fn Expr::is_in(Self, EntityType, Self) -> Self
+pub fn Expr::le(Self, Self) -> Self
+pub fn Expr::like(Self, Pattern) -> Self
+pub fn Expr::lt(Self, Self) -> Self
+pub fn Expr::mul(Self, Self) -> Self
+pub fn Expr::ne(Self, Self) -> Self
+pub fn Expr::or_(Self, Self) -> Self
+pub fn Expr::sub(Self, Self) -> Self
+
+pub(all) enum Literal {
+  Bool(Bool)
+  Long(Int64)
+  String(String)
+  EntityUID(EntityUID)
+} derive(Eq, @debug.Debug)
+
+pub(all) struct Name {
+  ns : Array[String]
+  name : String
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
+
+pub(all) enum PartialValue {
+  Value(Value)
+  Residual(Expr)
+} derive(Eq, @debug.Debug)
+
+pub(all) struct Pattern {
+  elements : Array[PatternElem]
+} derive(Eq, @debug.Debug)
+
+pub(all) enum PatternElem {
+  Char(Char)
+  Wildcard
+} derive(Eq, @debug.Debug)
+
+pub(all) struct Policy {
+  id : String
+  effect : PolicyEffect
+  annotations : Array[Annotation]
+  principal : ScopeConstraint
+  action : ScopeConstraint
+  resource : ScopeConstraint
+  conditions : Array[Condition]
+} derive(Eq, @debug.Debug)
+pub fn Policy::action_eq(Self, String, String) -> Self
+pub fn Policy::action_in(Self, String, String) -> Self
+pub fn Policy::action_in_set(Self, Array[(String, String)]) -> Self
+pub fn Policy::annotate(Self, String, String) -> Self
+pub fn Policy::forbid(Self) -> Self
+pub fn Policy::permit(Self) -> Self
+pub fn Policy::principal_eq(Self, String, String) -> Self
+pub fn Policy::principal_in(Self, String, String) -> Self
+pub fn Policy::principal_is(Self, String) -> Self
+pub fn Policy::principal_is_in(Self, String, String, String) -> Self
+pub fn Policy::resource_eq(Self, String, String) -> Self
+pub fn Policy::resource_in(Self, String, String) -> Self
+pub fn Policy::resource_is(Self, String) -> Self
+pub fn Policy::resource_is_in(Self, String, String, String) -> Self
+pub fn Policy::unless(Self, Expr) -> Self
+pub fn Policy::when_(Self, Expr) -> Self
+pub fn Policy::with_id(Self, String) -> Self
+
+pub(all) enum PolicyEffect {
+  Permit
+  Forbid
+} derive(Eq, @debug.Debug)
+
+pub(all) struct Position {
+  filename : String
+  offset : Int
+  line : Int
+  column : Int
+} derive(Eq, @debug.Debug)
+
+pub(all) enum ScopeConstraint {
+  All
+  Eq(EntityUID)
+  In(EntityUID)
+  InSet(Array[EntityUID])
+  Is(EntityType)
+  IsIn(EntityType, EntityUID)
+} derive(Eq, @debug.Debug)
+
+pub(all) enum Type {
+  Bool
+  Long
+  String
+  Set
+  Record
+  Entity(EntityType)
+  Extension(Name)
+} derive(Eq, @debug.Debug)
+
+pub(all) enum UnaryOp {
+  Not
+  Neg
+  IsEmpty
+} derive(Eq, @debug.Debug)
+
+pub(all) enum Value {
+  Bool(Bool)
+  Long(Int64)
+  String(String)
+  EntityUID(EntityUID)
+  Set(Array[Value])
+  Record(Map[String, Value])
+  Extension(Name, String)
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
+
+pub(all) enum VarKind {
+  Principal
+  Action
+  Resource
+  Context
+} derive(Eq, @debug.Debug)
+
+// Type aliases
+
+// Traits
+

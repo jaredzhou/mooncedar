@@ -1,0 +1,80 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "jaredzhou/mooncedar/parser"
+
+import {
+  "jaredzhou/mooncedar/ast",
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn parse_expr(ArrayView[Token]) -> (@ast.Expr, ArrayView[Token]) raise ParseError
+
+pub fn parse_policies(String) -> Array[@ast.Policy] raise ParseError
+
+pub fn stringify(@ast.Policy) -> String
+
+pub fn stringify_expr(@ast.Expr) -> String
+
+pub fn tokenize(String, filename? : String) -> Array[Token]
+
+// Errors
+pub(all) suberror ParseError {
+  ParseError(String, @ast.Position)
+} derive(@debug.Debug)
+
+// Types and methods
+pub(all) enum Keyword {
+  Permit
+  Forbid
+  When
+  Unless
+  In
+  Has
+  Like
+  Is
+  If
+  Then
+  Else
+} derive(Eq, @debug.Debug)
+pub impl Show for Keyword
+
+pub(all) enum Operator {
+  Add
+  Sub
+  Mul
+  Eq
+  Ne
+  Lt
+  Gt
+  Le
+  Ge
+  And
+  Or
+  Not
+} derive(Eq, @debug.Debug)
+pub impl Show for Operator
+
+pub(all) struct Token {
+  kind : TokenKind
+  pos : @ast.Position
+} derive(Eq, @debug.Debug)
+pub fn Token::new(TokenKind, @ast.Position) -> Self
+
+pub(all) enum TokenKind {
+  Bool(Bool)
+  Int(Int64)
+  String(String)
+  Ident(String)
+  Keyword(Keyword)
+  Op(Operator)
+  Bracket(Char)
+  Symbol(String)
+  Unknown
+  EOF
+} derive(Eq, @debug.Debug)
+pub impl Show for TokenKind
+
+// Type aliases
+
+// Traits
+

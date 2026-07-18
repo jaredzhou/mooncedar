@@ -1,0 +1,159 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "jaredzhou/mooncedar"
+
+import {
+  "jaredzhou/mooncedar/ast",
+  "jaredzhou/mooncedar/evaluator",
+  "jaredzhou/mooncedar/parser",
+  "moonbitlang/core/debug",
+  "moonbitlang/core/json",
+}
+
+// Values
+pub fn cedar_entity_from_json(Json, @json.JsonPath) -> @ast.Entity raise @json.JsonDecodeError
+
+pub fn cedar_value_from_json(Json, @json.JsonPath) -> @ast.Value raise @json.JsonDecodeError
+
+pub fn cedar_value_from_object(Map[String, Json], @json.JsonPath) -> @ast.Value raise @json.JsonDecodeError
+
+pub fn default_policy() -> @ast.Policy
+
+pub fn entity_type(String) -> @ast.EntityType
+
+pub fn entity_uid(String, String) -> @ast.EntityUID
+
+pub fn[S : @evaluator.EntityStore] evaluate(@evaluator.Request, Iter[@ast.Policy], S) -> PartialAuthorizationAnswer
+
+pub fn expr_action() -> @ast.Expr
+
+pub fn expr_bool(Bool) -> @ast.Expr
+
+pub fn expr_context() -> @ast.Expr
+
+pub fn expr_euid(String, String) -> @ast.Expr
+
+pub fn expr_ext_call(@ast.Name, Array[@ast.Expr]) -> @ast.Expr
+
+pub fn expr_if(@ast.Expr, @ast.Expr, @ast.Expr) -> @ast.Expr
+
+pub fn expr_is_empty(@ast.Expr) -> @ast.Expr
+
+pub fn expr_long(Int64) -> @ast.Expr
+
+pub fn expr_neg(@ast.Expr) -> @ast.Expr
+
+pub fn expr_not(@ast.Expr) -> @ast.Expr
+
+pub fn expr_principal() -> @ast.Expr
+
+pub fn expr_record(Array[(String, @ast.Expr)]) -> @ast.Expr
+
+pub fn expr_resource() -> @ast.Expr
+
+pub fn expr_set(Array[@ast.Expr]) -> @ast.Expr
+
+pub fn expr_str(String) -> @ast.Expr
+
+pub fn expr_unknown(String) -> @ast.Expr
+
+pub fn[S : @evaluator.EntityStore] is_authorized(@evaluator.Request, Iter[@ast.Policy], S) -> AuthorizationResult
+
+pub fn new_map_store() -> MapEntityStore
+
+pub fn parse_policies(String) -> Array[@ast.Policy] raise @parser.ParseError
+
+pub fn stringify(@ast.Policy) -> String
+
+pub fn stringify_expr(@ast.Expr) -> String
+
+pub fn to_request_json(@evaluator.Request) -> RequestJSON
+
+// Errors
+
+// Types and methods
+pub(all) struct AuthorizationResult {
+  decision : Decision
+  determining_policies : Array[DiagnosticReason]
+  errors : Array[DiagnosticError]
+} derive(Eq, @debug.Debug)
+
+pub(all) enum Decision {
+  Allow
+  Deny
+} derive(Eq, @debug.Debug)
+
+type DecisionRecord derive(Eq, @debug.Debug)
+
+pub(all) struct DiagnosticError {
+  policy_id : String
+  position : @ast.Position
+  message : String
+} derive(Eq, @debug.Debug)
+
+pub(all) struct DiagnosticReason {
+  policy_id : String
+  position : @ast.Position
+} derive(Eq, @debug.Debug)
+
+pub(all) struct MapEntityStore {
+  entities : Map[@ast.EntityUID, @ast.Entity]
+} derive(Eq, @debug.Debug)
+pub impl @evaluator.EntityStore for MapEntityStore
+pub impl ToJson for MapEntityStore
+pub impl @json.FromJson for MapEntityStore
+
+pub(all) struct PartialAuthorizationAnswer {
+  satisfied : Array[DecisionRecord]
+  residuals : Array[ResidualRecord]
+  errors : Array[DiagnosticError]
+} derive(@debug.Debug)
+pub fn PartialAuthorizationAnswer::concretize(Self) -> AuthorizationResult
+pub fn[S : @evaluator.EntityStore] PartialAuthorizationAnswer::reauthorize(Self, @evaluator.Request, S, Map[String, @ast.Value]) -> Self
+
+pub(all) struct RequestJSON {
+  principal : String?
+  action : String?
+  resource : String?
+  context : @ast.Value?
+} derive(Eq, @debug.Debug)
+pub fn RequestJSON::to_request(Self) -> @evaluator.Request
+pub impl ToJson for RequestJSON
+pub impl @json.FromJson for RequestJSON
+
+type ResidualRecord derive(Eq, @debug.Debug)
+
+// Type aliases
+pub using @ast {type Condition}
+
+pub using @evaluator {type Context}
+
+pub using @ast {type Entity}
+
+pub using @ast {type EntityType}
+
+pub using @ast {type EntityUID}
+
+pub using @evaluator {type EntityUIDEntry}
+
+pub using @evaluator {type EvalError}
+
+pub using @ast {type Expr}
+
+pub using @parser {type ParseError}
+
+pub using @ast {type PartialValue}
+
+pub using @ast {type Policy}
+
+pub using @ast {type PolicyEffect}
+
+pub using @evaluator {type Request}
+
+pub using @ast {type ScopeConstraint}
+
+pub using @ast {type Type}
+
+pub using @ast {type Value}
+
+// Traits
+

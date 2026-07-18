@@ -1,0 +1,79 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "jaredzhou/mooncedar/evaluator"
+
+import {
+  "jaredzhou/mooncedar/ast",
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn concrete_context(@ast.Value) -> Context
+
+pub fn concrete_uid(String, String) -> EntityUIDEntry
+
+pub fn eval_binary(@ast.BinaryOp, @ast.Value, @ast.Value) -> @ast.Value raise EvalError
+
+pub fn[S : EntityStore] eval_expr(@ast.Expr, Request, S) -> @ast.PartialValue raise EvalError
+
+pub fn[S : EntityStore] eval_policy(@ast.Policy, Request, S) -> @ast.PartialValue raise EvalError
+
+pub fn eval_unary(@ast.UnaryOp, @ast.Value) -> @ast.Value raise EvalError
+
+pub fn[S : EntityStore] is_descendant(@ast.EntityUID, @ast.EntityUID, S) -> Bool
+
+pub fn partial_context(@ast.Expr) -> Context
+
+pub fn[S : EntityStore] scope_match(@ast.ScopeConstraint, @ast.EntityUID, S) -> Bool
+
+pub fn sub_long(@ast.Value, @ast.Value) -> @ast.Value raise EvalError
+
+pub fn unknown_context() -> Context
+
+pub fn unknown_uid(String) -> EntityUIDEntry
+
+pub fn value_to_expr(@ast.Value) -> @ast.Expr
+
+pub fn wildcard_match(String, @ast.Pattern) -> Bool
+
+// Errors
+pub(all) suberror EvalError {
+  TypeMismatch(String)
+  IntegerOverflow
+  EntityNotFound(String)
+  InvalidOperator(String)
+  ExtensionNotSupported(String)
+  SlotNotSupported
+} derive(Eq, @debug.Debug)
+
+// Types and methods
+pub(all) enum Context {
+  Concrete(@ast.Value)
+  Unknown
+  Partial(@ast.Expr)
+} derive(Eq, @debug.Debug)
+
+pub(all) enum Dereference {
+  Data(@ast.Entity)
+  NoSuchEntity
+  Residual(@ast.Expr)
+} derive(Eq, @debug.Debug)
+
+pub(all) enum EntityUIDEntry {
+  Concrete(@ast.EntityUID)
+  Unknown(@ast.EntityType)
+} derive(Eq, @debug.Debug)
+
+pub(all) struct Request {
+  principal : EntityUIDEntry
+  action : EntityUIDEntry
+  resource : EntityUIDEntry
+  context : Context
+} derive(Eq, @debug.Debug)
+
+// Type aliases
+
+// Traits
+pub(open) trait EntityStore {
+  fn get_entity(Self, @ast.EntityUID) -> @ast.Entity?
+}
+
