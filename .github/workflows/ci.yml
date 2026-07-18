@@ -1,0 +1,47 @@
+# MoonCedar CI — install toolchain, then run check / fmt / info / test on every push and PR.
+# Modeled after the moonbit-community/.github check template (no matrix, ubuntu only).
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Install MoonBit
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          echo "$HOME/.moon/bin" >> $GITHUB_PATH
+
+      - name: Update dependencies
+        run: |
+          moon version --all
+          moon update
+
+      # Type-check the module with all warnings treated as errors.
+      - name: Check
+        run: moon check --deny-warn
+
+      # Format check — no-op if `moon fmt` would produce no diff.
+      - name: Format check
+        run: moon fmt --check
+
+      # Regenerate .mbti interfaces and fail on drift (signals API change).
+      - name: Interface check
+        run: |
+          moon info
+          git diff --exit-code
+
+      # Build + run all tests (unit + integration).
+      - name: Test
+        run: moon test

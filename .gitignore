@@ -1,5 +1,12 @@
 # Build artifacts
 _build/
+target/
+target
+
+# Mooncakes / moonagent / vendored repos
+.mooncakes/
+.moonagent/
+.repos/
 
 # Editor / OS
 .DS_Store
