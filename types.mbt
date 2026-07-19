@@ -182,6 +182,28 @@ pub fn ext_call(name : @ast.Name, args : Array[@ast.Expr]) -> @ast.Expr {
 }
 
 // ---------------------------------------------------------------------------
+// Evaluator (re-exported from @evaluator)
+// ---------------------------------------------------------------------------
+
+///|
+/// Evaluate a Cedar expression with the given request and entity store.
+/// Returns Value(concrete) for fully-reducible expressions, or Residual(expr)
+/// for expressions that cannot be fully reduced (partial evaluation).
+pub fn[S : @evaluator.EntityStore] eval_expr(
+  expr : @ast.Expr,
+  req : @evaluator.Request,
+  store : S,
+) -> @ast.PartialValue raise @evaluator.EvalError {
+  @evaluator.eval_expr(expr, req, store)
+}
+
+///|
+/// Convert a concrete Value back into an Expr AST node.
+pub fn value_to_expr(v : @ast.Value) -> @ast.Expr {
+  @evaluator.value_to_expr(v)
+}
+
+// ---------------------------------------------------------------------------
 // Policy builder (re-exported from @ast)
 // ---------------------------------------------------------------------------
 
