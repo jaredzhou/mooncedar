@@ -1,0 +1,9 @@
+{
+  "name": "jaredzhou/mooncedar",
+  "version": "0.1.4",
+  "readme": "README.md",
+  "repository": "https://github.com/jaredzhou/mooncedar",
+  "license": "Apache-2.0",
+  "keywords": ["cedar", "authorization", "policy"],
+  "description": "MoonCedar - Cedar policy engine in MoonBit"
+}
