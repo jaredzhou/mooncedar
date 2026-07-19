@@ -248,7 +248,7 @@ test "parse scope all scope" {
 test "parse when condition int" {
   @debug.assert_eq(
     parse_one_policy("permit(principal, action, resource) when { 1234 };"),
-    @ast.default().with_id("policy").permit().when_(@ast.expr_long(1234L)),
+    @ast.default().with_id("policy").permit().when_(@ast.long(1234L)),
   )
 }
 
@@ -261,7 +261,7 @@ test "parse when condition string" {
     @ast.default()
     .with_id("policy")
     .permit()
-    .when_(@ast.expr_str("test string")),
+    .when_(@ast.str("test string")),
   )
 }
 
@@ -269,7 +269,7 @@ test "parse when condition string" {
 test "parse when condition bool" {
   @debug.assert_eq(
     parse_one_policy("permit(principal, action, resource) when { true };"),
-    @ast.default().with_id("policy").permit().when_(@ast.expr_bool(true)),
+    @ast.default().with_id("policy").permit().when_(@ast.bool(true)),
   )
 }
 
@@ -277,7 +277,7 @@ test "parse when condition bool" {
 test "parse unless condition" {
   @debug.assert_eq(
     parse_one_policy("permit(principal, action, resource) unless { false };"),
-    @ast.default().with_id("policy").permit().unless(@ast.expr_bool(false)),
+    @ast.default().with_id("policy").permit().unless(@ast.bool(false)),
   )
 }
 
@@ -294,8 +294,8 @@ test "parse when and unless" {
     @ast.default()
     .with_id("policy")
     .permit()
-    .when_(@ast.expr_bool(true))
-    .unless(@ast.expr_bool(false)),
+    .when_(@ast.bool(true))
+    .unless(@ast.bool(false)),
   )
 }
 
@@ -306,7 +306,7 @@ test "parse when condition not" {
     @ast.default()
     .with_id("policy")
     .permit()
-    .when_(@ast.expr_not(@ast.expr_bool(true))),
+    .when_(@ast.not_(@ast.bool(true))),
   )
 }
 
@@ -314,7 +314,7 @@ test "parse when condition not" {
 test "parse when condition negate" {
   @debug.assert_eq(
     parse_one_policy("permit(principal, action, resource) when { -1 };"),
-    @ast.default().with_id("policy").permit().when_(@ast.expr_long(-1L)),
+    @ast.default().with_id("policy").permit().when_(@ast.long(-1L)),
   )
 }
 
@@ -325,7 +325,7 @@ test "parse when condition chained not negate" {
     @ast.default()
     .with_id("policy")
     .permit()
-    .when_(@ast.expr_not(@ast.expr_neg(@ast.expr_long(-1L)))),
+    .when_(@ast.not_(@ast.neg(@ast.long(-1L)))),
   )
 }
 
@@ -338,7 +338,7 @@ test "parse when condition entity" {
     @ast.default()
     .with_id("policy")
     .permit()
-    .when_(@ast.expr_euid("Org::User", "alice")),
+    .when_(@ast.euid("Org::User", "alice")),
   )
 }
 
@@ -349,7 +349,7 @@ test "parse when condition extension fun" {
     @ast.default()
     .with_id("policy")
     .permit()
-    .when_(@ast.expr_ext_call(@ast.Name::{ ns: [], name: "ip" }, [])),
+    .when_(@ast.ext_call(@ast.Name::{ ns: [], name: "ip" }, [])),
   )
 }
 
@@ -366,10 +366,10 @@ test "parse when condition if then else" {
     .with_id("policy")
     .permit()
     .when_(
-      @ast.expr_if(
-        @ast.expr_bool(false),
-        @ast.expr_principal(),
-        @ast.expr_principal(),
+      @ast.if_(
+        @ast.bool(false),
+        @ast.principal(),
+        @ast.principal(),
       ),
     ),
   )
@@ -388,12 +388,12 @@ test "parse when condition access and has with and" {
     .with_id("policy")
     .permit()
     .when_(
-      @ast.expr_resource()
+      @ast.resource()
       .access("foo")
       .has("bar")
       .and_(
-        @ast.expr_ext_call(@ast.Name::{ ns: [], name: "isIpv4" }, [
-          @ast.expr_resource(),
+        @ast.ext_call(@ast.Name::{ ns: [], name: "isIpv4" }, [
+          @ast.resource(),
         ]),
       ),
     ),
@@ -407,7 +407,7 @@ test "parse when condition set" {
     @ast.default()
     .with_id("policy")
     .permit()
-    .when_(@ast.expr_set([@ast.expr_bool(true)])),
+    .when_(@ast.set([@ast.bool(true)])),
   )
 }
 
@@ -420,7 +420,7 @@ test "parse when condition record" {
     @ast.default()
     .with_id("policy")
     .permit()
-    .when_(@ast.expr_record([("key", @ast.expr_str("some value"))])),
+    .when_(@ast.record([("key", @ast.str("some value"))])),
   )
 }
 
@@ -433,7 +433,7 @@ test "parse when condition is" {
     @ast.default()
     .with_id("policy")
     .permit()
-    .when_(@ast.expr_principal().is_(@ast.entity_type("X"))),
+    .when_(@ast.principal().is_(@ast.entity_type("X"))),
   )
 }
 
@@ -446,7 +446,7 @@ test "parse when condition is long" {
     @ast.default()
     .with_id("policy")
     .permit()
-    .when_(@ast.expr_principal().is_(@ast.entity_type("X::Y"))),
+    .when_(@ast.principal().is_(@ast.entity_type("X::Y"))),
   )
 }
 
@@ -460,9 +460,9 @@ test "parse when condition is in" {
     .with_id("policy")
     .permit()
     .when_(
-      @ast.expr_principal().is_in(
+      @ast.principal().is_in(
         @ast.entity_type("X"),
-        @ast.expr_euid("X", "z"),
+        @ast.euid("X", "z"),
       ),
     ),
   )
@@ -484,12 +484,12 @@ test "parse when condition hasTag getTag" {
     .with_id("policy")
     .permit()
     .when_(
-      @ast.expr_principal()
-      .has_tag(@ast.expr_str("blue"))
+      @ast.principal()
+      .has_tag(@ast.str("blue"))
       .and_(
-        @ast.expr_principal()
-        .get_tag(@ast.expr_str("blue"))
-        .eq(@ast.expr_str("green")),
+        @ast.principal()
+        .get_tag(@ast.str("blue"))
+        .eq(@ast.str("green")),
       ),
     ),
   )
@@ -668,11 +668,11 @@ test "parse multiple: three with conditions" {
   @debug.assert_eq(ps.length(), 3)
   @debug.assert_eq(
     ps[0],
-    @ast.default().with_id("policy").permit().when_(@ast.expr_bool(true)),
+    @ast.default().with_id("policy").permit().when_(@ast.bool(true)),
   )
   @debug.assert_eq(
     ps[1],
-    @ast.default().with_id("policy1").permit().unless(@ast.expr_bool(false)),
+    @ast.default().with_id("policy1").permit().unless(@ast.bool(false)),
   )
   @debug.assert_eq(
     ps[2],
@@ -680,8 +680,8 @@ test "parse multiple: three with conditions" {
     .with_id("policy2")
     .forbid()
     .when_(
-      @ast.expr_ext_call(@ast.Name::{ ns: [], name: "isIpv4" }, [
-        @ast.expr_resource(),
+      @ast.ext_call(@ast.Name::{ ns: [], name: "isIpv4" }, [
+        @ast.resource(),
       ]),
     ),
   )
@@ -786,7 +786,7 @@ test "parse multiple: mixed effects and conditions" {
     .with_id("rule-1")
     .permit()
     .principal_in("Team", "admins")
-    .when_(@ast.expr_resource().has("public")),
+    .when_(@ast.resource().has("public")),
   )
   @debug.assert_eq(
     ps[1],

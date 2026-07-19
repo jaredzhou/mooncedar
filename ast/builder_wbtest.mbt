@@ -7,48 +7,48 @@
 
 ///|
 test "val_bool" {
-  @debug.assert_eq(expr_bool(true), Lit(Bool(true)))
-  @debug.assert_eq(expr_bool(false), Lit(Bool(false)))
+  @debug.assert_eq(bool(true), Lit(Bool(true)))
+  @debug.assert_eq(bool(false), Lit(Bool(false)))
 }
 
 ///|
 test "val_long" {
-  @debug.assert_eq(expr_long(42L), Lit(Long(42L)))
-  @debug.assert_eq(expr_long(0L), Lit(Long(0L)))
+  @debug.assert_eq(long(42L), Lit(Long(42L)))
+  @debug.assert_eq(long(0L), Lit(Long(0L)))
 }
 
 ///|
 test "val_str" {
-  @debug.assert_eq(expr_str("hello"), Lit(String("hello")))
-  @debug.assert_eq(expr_str(""), Lit(String("")))
+  @debug.assert_eq(str("hello"), Lit(String("hello")))
+  @debug.assert_eq(str(""), Lit(String("")))
 }
 
 ///|
 test "val_euid" {
   @debug.assert_eq(
-    expr_euid("User", "alice"),
+    euid("User", "alice"),
     Lit(EntityUID(EntityUID::{ type_: "User", id: "alice" })),
   )
 }
 
 ///|
 test "var_principal" {
-  @debug.assert_eq(expr_principal(), Var(Principal))
+  @debug.assert_eq(principal(), Var(Principal))
 }
 
 ///|
 test "var_action" {
-  @debug.assert_eq(expr_action(), Var(Action))
+  @debug.assert_eq(action(), Var(Action))
 }
 
 ///|
 test "var_resource" {
-  @debug.assert_eq(expr_resource(), Var(Resource))
+  @debug.assert_eq(resource(), Var(Resource))
 }
 
 ///|
 test "var_context" {
-  @debug.assert_eq(expr_context(), Var(Context))
+  @debug.assert_eq(context(), Var(Context))
 }
 
 // ---------------------------------------------------------------------------
@@ -57,51 +57,51 @@ test "var_context" {
 
 ///|
 test "if_" {
-  let cond = expr_bool(true)
-  let t = expr_str("yes")
-  let e = expr_str("no")
-  @debug.assert_eq(expr_if(cond, t, e), If(cond, t, e))
+  let cond = bool(true)
+  let t = str("yes")
+  let e = str("no")
+  @debug.assert_eq(if_(cond, t, e), If(cond, t, e))
 }
 
 ///|
 test "not_" {
-  @debug.assert_eq(expr_not(expr_bool(true)), UnaryApp(Not, Lit(Bool(true))))
+  @debug.assert_eq(not_(bool(true)), UnaryApp(Not, Lit(Bool(true))))
 }
 
 ///|
 test "neg" {
-  @debug.assert_eq(expr_neg(expr_long(1L)), UnaryApp(Neg, Lit(Long(1L))))
+  @debug.assert_eq(neg(long(1L)), UnaryApp(Neg, Lit(Long(1L))))
 }
 
 ///|
 test "is_empty" {
   @debug.assert_eq(
-    expr_is_empty(expr_str("x")),
+    is_empty(str("x")),
     UnaryApp(IsEmpty, Lit(String("x"))),
   )
 }
 
 ///|
 test "set_" {
-  let elems = [expr_bool(true), expr_str("a")]
-  @debug.assert_eq(expr_set(elems), Set(elems))
-  @debug.assert_eq(expr_set([]), Set([]))
+  let elems = [bool(true), str("a")]
+  @debug.assert_eq(set(elems), Set(elems))
+  @debug.assert_eq(set([]), Set([]))
 }
 
 ///|
 test "record_" {
   let pairs : Array[(String, Expr)] = [
-    ("a", expr_long(1L)),
-    ("b", expr_str("x")),
+    ("a", long(1L)),
+    ("b", str("x")),
   ]
-  @debug.assert_eq(expr_record(pairs), Record(pairs))
+  @debug.assert_eq(record(pairs), Record(pairs))
 }
 
 ///|
 test "ext_call" {
   let name = Name::{ ns: ["ip"], name: "is_ipv4" }
-  let arg = expr_str("1.2.3.4")
-  @debug.assert_eq(expr_ext_call(name, [arg]), ExtensionApp(name, [arg]))
+  let arg = str("1.2.3.4")
+  @debug.assert_eq(ext_call(name, [arg]), ExtensionApp(name, [arg]))
 }
 
 // ---------------------------------------------------------------------------
@@ -110,8 +110,8 @@ test "ext_call" {
 
 ///|
 test "eq" {
-  let lhs = expr_principal()
-  let rhs = expr_str("alice")
+  let lhs = principal()
+  let rhs = str("alice")
   @debug.assert_eq(
     lhs.eq(rhs),
     BinaryApp(Eq, Var(Principal), Lit(String("alice"))),
@@ -120,8 +120,8 @@ test "eq" {
 
 ///|
 test "ne" {
-  let lhs = expr_principal()
-  let rhs = expr_str("alice")
+  let lhs = principal()
+  let rhs = str("alice")
   @debug.assert_eq(
     lhs.ne(rhs),
     BinaryApp(Ne, Var(Principal), Lit(String("alice"))),
@@ -130,50 +130,50 @@ test "ne" {
 
 ///|
 test "lt" {
-  let lhs = expr_long(3L)
-  let rhs = expr_long(5L)
+  let lhs = long(3L)
+  let rhs = long(5L)
   @debug.assert_eq(lhs.lt(rhs), BinaryApp(Less, Lit(Long(3L)), Lit(Long(5L))))
 }
 
 ///|
 test "le" {
-  let lhs = expr_long(3L)
-  let rhs = expr_long(5L)
+  let lhs = long(3L)
+  let rhs = long(5L)
   @debug.assert_eq(lhs.le(rhs), BinaryApp(LessEq, Lit(Long(3L)), Lit(Long(5L))))
 }
 
 ///|
 test "gt" {
-  let lhs = expr_long(5L)
-  let rhs = expr_long(3L)
+  let lhs = long(5L)
+  let rhs = long(3L)
   @debug.assert_eq(lhs.gt(rhs), BinaryApp(Gt, Lit(Long(5L)), Lit(Long(3L))))
 }
 
 ///|
 test "ge" {
-  let lhs = expr_long(5L)
-  let rhs = expr_long(3L)
+  let lhs = long(5L)
+  let rhs = long(3L)
   @debug.assert_eq(lhs.ge(rhs), BinaryApp(Ge, Lit(Long(5L)), Lit(Long(3L))))
 }
 
 ///|
 test "add" {
-  let lhs = expr_long(1L)
-  let rhs = expr_long(2L)
+  let lhs = long(1L)
+  let rhs = long(2L)
   @debug.assert_eq(lhs.add(rhs), BinaryApp(Add, Lit(Long(1L)), Lit(Long(2L))))
 }
 
 ///|
 test "sub" {
-  let lhs = expr_long(5L)
-  let rhs = expr_long(3L)
+  let lhs = long(5L)
+  let rhs = long(3L)
   @debug.assert_eq(lhs.sub(rhs), BinaryApp(Sub, Lit(Long(5L)), Lit(Long(3L))))
 }
 
 ///|
 test "mul" {
-  let lhs = expr_long(2L)
-  let rhs = expr_long(3L)
+  let lhs = long(2L)
+  let rhs = long(3L)
   @debug.assert_eq(lhs.mul(rhs), BinaryApp(Mul, Lit(Long(2L)), Lit(Long(3L))))
 }
 
@@ -183,22 +183,22 @@ test "mul" {
 
 ///|
 test "and_" {
-  let lhs = expr_bool(true)
-  let rhs = expr_bool(false)
+  let lhs = bool(true)
+  let rhs = bool(false)
   @debug.assert_eq(lhs.and_(rhs), And(Lit(Bool(true)), Lit(Bool(false))))
 }
 
 ///|
 test "or_" {
-  let lhs = expr_bool(true)
-  let rhs = expr_bool(false)
+  let lhs = bool(true)
+  let rhs = bool(false)
   @debug.assert_eq(lhs.or_(rhs), Or(Lit(Bool(true)), Lit(Bool(false))))
 }
 
 ///|
 test "in_" {
-  let entity = expr_euid("Photo", "sunset")
-  let parent = expr_euid("Album", "vacation")
+  let entity = euid("Photo", "sunset")
+  let parent = euid("Album", "vacation")
   @debug.assert_eq(
     entity.in_(parent),
     BinaryApp(
@@ -211,8 +211,8 @@ test "in_" {
 
 ///|
 test "contains" {
-  let set_expr = expr_set([expr_str("a")])
-  let elem = expr_str("a")
+  let set_expr = set([str("a")])
+  let elem = str("a")
   @debug.assert_eq(
     set_expr.contains(elem),
     BinaryApp(Contains, Set([Lit(String("a"))]), Lit(String("a"))),
@@ -221,8 +221,8 @@ test "contains" {
 
 ///|
 test "contains_all" {
-  let set_expr = expr_set([expr_str("a"), expr_str("b")])
-  let subset = expr_set([expr_str("a")])
+  let set_expr = set([str("a"), str("b")])
+  let subset = set([str("a")])
   @debug.assert_eq(
     set_expr.contains_all(subset),
     BinaryApp(
@@ -235,8 +235,8 @@ test "contains_all" {
 
 ///|
 test "contains_any" {
-  let set_expr = expr_set([expr_str("a")])
-  let other = expr_set([expr_str("a"), expr_str("b")])
+  let set_expr = set([str("a")])
+  let other = set([str("a"), str("b")])
   @debug.assert_eq(
     set_expr.contains_any(other),
     BinaryApp(
@@ -249,8 +249,8 @@ test "contains_any" {
 
 ///|
 test "get_tag" {
-  let entity = expr_euid("User", "alice")
-  let tag = expr_str("department")
+  let entity = euid("User", "alice")
+  let tag = str("department")
   @debug.assert_eq(
     entity.get_tag(tag),
     GetTag(
@@ -262,8 +262,8 @@ test "get_tag" {
 
 ///|
 test "has_tag" {
-  let entity = expr_euid("User", "alice")
-  let tag = expr_str("department")
+  let entity = euid("User", "alice")
+  let tag = str("department")
   @debug.assert_eq(
     entity.has_tag(tag),
     HasTag(
@@ -279,26 +279,26 @@ test "has_tag" {
 
 ///|
 test "access" {
-  let entity = expr_principal()
+  let entity = principal()
   @debug.assert_eq(entity.access("dept"), GetAttr(Var(Principal), "dept"))
 }
 
 ///|
 test "has" {
-  let entity = expr_principal()
+  let entity = principal()
   @debug.assert_eq(entity.has("dept"), HasAttr(Var(Principal), "dept"))
 }
 
 ///|
 test "like" {
-  let s = expr_str("hello")
+  let s = str("hello")
   let pat = Pattern::{ elements: [Char('h'), Wildcard] }
   @debug.assert_eq(s.like(pat), Like(Lit(String("hello")), pat))
 }
 
 ///|
 test "is_" {
-  let entity = expr_principal()
+  let entity = principal()
   @debug.assert_eq(
     entity.is_(EntityType("User")),
     Expr::Is(Var(Principal), EntityType("User")),
@@ -307,9 +307,9 @@ test "is_" {
 
 ///|
 test "is_in" {
-  let entity = expr_principal()
+  let entity = principal()
   let ty = EntityType("User")
-  let parent = expr_euid("Org", "corp")
+  let parent = euid("Org", "corp")
   let is_expr = Expr::Is(Var(Principal), EntityType("User"))
   @debug.assert_eq(
     entity.is_in(ty, parent),
@@ -330,7 +330,7 @@ test "is_in" {
 
 ///|
 test "chaining: principal.dept == 'engineering'" {
-  let expr = expr_principal().access("dept").eq(expr_str("engineering"))
+  let expr = principal().access("dept").eq(str("engineering"))
   @debug.assert_eq(
     expr,
     BinaryApp(Eq, GetAttr(Var(Principal), "dept"), Lit(String("engineering"))),
@@ -339,10 +339,10 @@ test "chaining: principal.dept == 'engineering'" {
 
 ///|
 test "chaining: principal.dept == 'engineering' && resource.public == true" {
-  let expr = expr_principal()
+  let expr = principal()
     .access("dept")
-    .eq(expr_str("engineering"))
-    .and_(expr_resource().access("public").eq(expr_bool(true)))
+    .eq(str("engineering"))
+    .and_(resource().access("public").eq(bool(true)))
   @debug.assert_eq(
     expr,
     And(
@@ -353,8 +353,8 @@ test "chaining: principal.dept == 'engineering' && resource.public == true" {
 }
 
 ///|
-test "chaining: expr_not(principal.age.lt(18))" {
-  let expr = expr_not(expr_principal().access("age").lt(expr_long(18L)))
+test "chaining: not_(principal.age.lt(18))" {
+  let expr = not_(principal().access("age").lt(long(18L)))
   @debug.assert_eq(
     expr,
     UnaryApp(
@@ -366,9 +366,9 @@ test "chaining: expr_not(principal.age.lt(18))" {
 
 ///|
 test "chaining: resource.tags.contains_all(set_)" {
-  let expr = expr_resource()
+  let expr = resource()
     .access("tags")
-    .contains_all(expr_set([expr_str("public"), expr_str("verified")]))
+    .contains_all(set([str("public"), str("verified")]))
   @debug.assert_eq(
     expr,
     BinaryApp(
@@ -533,22 +533,22 @@ test "policy annotate" {
 
 ///|
 test "policy when_" {
-  let body = expr_resource().access("public").eq(expr_bool(true))
+  let body = resource().access("public").eq(bool(true))
   let p = default().when_(body)
   @debug.assert_eq(p.conditions, [Condition::{ kind: When, body }])
 }
 
 ///|
 test "policy unless" {
-  let body = expr_principal().access("banned").eq(expr_bool(true))
+  let body = principal().access("banned").eq(bool(true))
   let p = default().unless(body)
   @debug.assert_eq(p.conditions, [Condition::{ kind: Unless, body }])
 }
 
 ///|
 test "policy multiple conditions" {
-  let when_body = expr_resource().access("public").eq(expr_bool(true))
-  let unless_body = expr_principal().access("banned").eq(expr_bool(true))
+  let when_body = resource().access("public").eq(bool(true))
+  let unless_body = principal().access("banned").eq(bool(true))
   let p = default().when_(when_body).unless(unless_body)
   @debug.assert_eq(p.conditions.length(), 2)
   @debug.assert_eq(p.conditions[0].kind, When)
@@ -567,7 +567,7 @@ test "chaining: full policy builder" {
     .principal_eq("User", "alice")
     .action_in("PhotoOp", "view")
     .resource_is("Photo")
-    .when_(expr_resource().access("public").eq(expr_bool(true)))
+    .when_(resource().access("public").eq(bool(true)))
     .annotate("source", "policy_generator")
   @debug.assert_eq(p.id, "allow-alice")
   @debug.assert_eq(p.effect, Permit)
@@ -586,7 +586,7 @@ test "chaining: forbid policy with unless" {
     .principal_is("User")
     .action_eq("PhotoOp", "delete")
     .resource_eq("Photo", "secret.png")
-    .unless(expr_principal().access("banned").eq(expr_bool(true)))
+    .unless(principal().access("banned").eq(bool(true)))
   @debug.assert_eq(p.effect, Forbid)
   @debug.assert_eq(p.id, "deny-banned")
   @debug.assert_eq(p.principal, Is(EntityType("User")))

@@ -746,7 +746,7 @@ test "cpe: true && unknown preserves And wrapper" {
   // ensures the runtime type check (residual must be Bool) is preserved.
   let e = @ast.Expr::And(
     @ast.Expr::Lit(@ast.Literal::Bool(true)),
-    @ast.expr_unknown("x"),
+    @ast.unknown("x"),
   )
   match eval_simple(e) {
     @ast.PartialValue::Residual(@ast.Expr::And(_, _)) =>
@@ -759,7 +759,7 @@ test "cpe: true && unknown preserves And wrapper" {
 test "cpe: false && unknown short-circuits" {
   let e = @ast.Expr::And(
     @ast.Expr::Lit(@ast.Literal::Bool(false)),
-    @ast.expr_unknown("x"),
+    @ast.unknown("x"),
   )
   match eval_simple(e) {
     @ast.PartialValue::Value(@ast.Value::Bool(false)) =>
@@ -772,7 +772,7 @@ test "cpe: false && unknown short-circuits" {
 test "cpe: false || unknown preserves Or wrapper" {
   let e = @ast.Expr::Or(
     @ast.Expr::Lit(@ast.Literal::Bool(false)),
-    @ast.expr_unknown("x"),
+    @ast.unknown("x"),
   )
   match eval_simple(e) {
     @ast.PartialValue::Residual(@ast.Expr::Or(_, _)) =>
@@ -785,7 +785,7 @@ test "cpe: false || unknown preserves Or wrapper" {
 test "cpe: true || unknown short-circuits" {
   let e = @ast.Expr::Or(
     @ast.Expr::Lit(@ast.Literal::Bool(true)),
-    @ast.expr_unknown("x"),
+    @ast.unknown("x"),
   )
   match eval_simple(e) {
     @ast.PartialValue::Value(@ast.Value::Bool(true)) =>
@@ -799,7 +799,7 @@ test "cpe: residual && type_error is suppressed" {
   // When left is residual, right-side type errors must be suppressed
   // because if left eventually evaluates to false, the error is short-circuited.
   let e = @ast.Expr::And(
-    @ast.expr_unknown("x"),
+    @ast.unknown("x"),
     @ast.Expr::ExtensionApp(@ast.Name::{ ns: ["ip"], name: "parse" }, [
       @ast.Expr::Lit(@ast.Literal::String("x")),
     ]),
@@ -813,7 +813,7 @@ test "cpe: residual && type_error is suppressed" {
 ///|
 test "cpe: residual || type_error is suppressed" {
   let e = @ast.Expr::Or(
-    @ast.expr_unknown("x"),
+    @ast.unknown("x"),
     @ast.Expr::ExtensionApp(@ast.Name::{ ns: ["ip"], name: "parse" }, [
       @ast.Expr::Lit(@ast.Literal::String("x")),
     ]),
@@ -833,7 +833,7 @@ test "cpe and_semantics1: false && (unknown && false) => false" {
   let e = @ast.Expr::And(
     @ast.Expr::Lit(@ast.Literal::Bool(false)),
     @ast.Expr::And(
-      @ast.expr_unknown("a"),
+      @ast.unknown("a"),
       @ast.Expr::Lit(@ast.Literal::Bool(false)),
     ),
   )
@@ -849,7 +849,7 @@ test "cpe and_semantics2: true && (unknown && false) => residual" {
   let e = @ast.Expr::And(
     @ast.Expr::Lit(@ast.Literal::Bool(true)),
     @ast.Expr::And(
-      @ast.expr_unknown("a"),
+      @ast.unknown("a"),
       @ast.Expr::Lit(@ast.Literal::Bool(false)),
     ),
   )
@@ -865,7 +865,7 @@ test "cpe or_semantics1: true || (unknown && false) => true" {
   let e = @ast.Expr::Or(
     @ast.Expr::Lit(@ast.Literal::Bool(true)),
     @ast.Expr::And(
-      @ast.expr_unknown("a"),
+      @ast.unknown("a"),
       @ast.Expr::Lit(@ast.Literal::Bool(false)),
     ),
   )
@@ -881,7 +881,7 @@ test "cpe or_semantics2: false || (unknown && false) => residual" {
   let e = @ast.Expr::Or(
     @ast.Expr::Lit(@ast.Literal::Bool(false)),
     @ast.Expr::And(
-      @ast.expr_unknown("a"),
+      @ast.unknown("a"),
       @ast.Expr::Lit(@ast.Literal::Bool(false)),
     ),
   )
@@ -896,7 +896,7 @@ test "cpe and_semantics4: residual && type_error => residual, error suppressed" 
   let e = @ast.Expr::And(
     @ast.Expr::BinaryApp(
       @ast.BinaryOp::Eq,
-      @ast.expr_unknown("a"),
+      @ast.unknown("a"),
       @ast.Expr::Lit(@ast.Literal::Long(2L)),
     ),
     @ast.Expr::BinaryApp(
@@ -921,7 +921,7 @@ test "cpe partial_and_err_res: type_error && residual => error propagates" {
       @ast.Expr::Lit(@ast.Literal::String("a")),
       @ast.Expr::Lit(@ast.Literal::Long(1L)),
     ),
-    @ast.expr_unknown("x"),
+    @ast.unknown("x"),
   )
   // Left is type error (string + long), right doesn't matter
   let mut raised = false
@@ -940,7 +940,7 @@ test "cpe partial_or_err_res: type_error || residual => error propagates" {
       @ast.Expr::Lit(@ast.Literal::String("a")),
       @ast.Expr::Lit(@ast.Literal::Long(1L)),
     ),
-    @ast.expr_unknown("x"),
+    @ast.unknown("x"),
   )
   let mut raised = false
   try eval_simple(e) |> ignore catch {
@@ -954,12 +954,12 @@ test "cpe partial_or_err_res: type_error || residual => error propagates" {
 test "cpe partial_and_true_res: true && residual => And(true, residual)" {
   let e = @ast.Expr::And(
     @ast.Expr::Lit(@ast.Literal::Bool(true)),
-    @ast.expr_unknown("a"),
+    @ast.unknown("a"),
   )
   match eval_simple(e) {
     @ast.PartialValue::Residual(@ast.Expr::And(l, r)) => {
       @debug.assert_eq(true, l == @ast.Expr::Lit(@ast.Literal::Bool(true)))
-      @debug.assert_eq(true, r == @ast.expr_unknown("a"))
+      @debug.assert_eq(true, r == @ast.unknown("a"))
     }
     _ => @debug.assert_eq(true, false)
   }
@@ -969,7 +969,7 @@ test "cpe partial_and_true_res: true && residual => And(true, residual)" {
 test "cpe partial_and_false_res: false && residual => false" {
   let e = @ast.Expr::And(
     @ast.Expr::Lit(@ast.Literal::Bool(false)),
-    @ast.expr_unknown("a"),
+    @ast.unknown("a"),
   )
   match eval_simple(e) {
     @ast.PartialValue::Value(@ast.Value::Bool(false)) =>
@@ -981,7 +981,7 @@ test "cpe partial_and_false_res: false && residual => false" {
 ///|
 test "cpe partial_and_res_true: residual && true => And(residual, Lit(true))" {
   let e = @ast.Expr::And(
-    @ast.expr_unknown("a"),
+    @ast.unknown("a"),
     @ast.Expr::Lit(@ast.Literal::Bool(true)),
   )
   match eval_simple(e) {
@@ -993,7 +993,7 @@ test "cpe partial_and_res_true: residual && true => And(residual, Lit(true))" {
 ///|
 test "cpe partial_and_res_false: residual && false => And(res, false)" {
   let e = @ast.Expr::And(
-    @ast.expr_unknown("a"),
+    @ast.unknown("a"),
     @ast.Expr::Lit(@ast.Literal::Bool(false)),
   )
   match eval_simple(e) {
@@ -1005,7 +1005,7 @@ test "cpe partial_and_res_false: residual && false => And(res, false)" {
 ///|
 test "cpe partial_and_res_err: residual && type_error => residual" {
   let e = @ast.Expr::And(
-    @ast.expr_unknown("a"),
+    @ast.unknown("a"),
     @ast.Expr::BinaryApp(
       @ast.BinaryOp::Add,
       @ast.Expr::Lit(@ast.Literal::String("s")),
@@ -1022,7 +1022,7 @@ test "cpe partial_and_res_err: residual && type_error => residual" {
 test "cpe partial_or_true_res: true || residual => true" {
   let e = @ast.Expr::Or(
     @ast.Expr::Lit(@ast.Literal::Bool(true)),
-    @ast.expr_unknown("a"),
+    @ast.unknown("a"),
   )
   match eval_simple(e) {
     @ast.PartialValue::Value(@ast.Value::Bool(true)) =>
@@ -1035,7 +1035,7 @@ test "cpe partial_or_true_res: true || residual => true" {
 test "cpe partial_or_false_res: false || residual => Or(false, residual)" {
   let e = @ast.Expr::Or(
     @ast.Expr::Lit(@ast.Literal::Bool(false)),
-    @ast.expr_unknown("a"),
+    @ast.unknown("a"),
   )
   match eval_simple(e) {
     @ast.PartialValue::Residual(_) => @debug.assert_eq(true, true)
@@ -1046,7 +1046,7 @@ test "cpe partial_or_false_res: false || residual => Or(false, residual)" {
 ///|
 test "cpe partial_or_res_true: residual || true => Or(res, true)" {
   let e = @ast.Expr::Or(
-    @ast.expr_unknown("a"),
+    @ast.unknown("a"),
     @ast.Expr::Lit(@ast.Literal::Bool(true)),
   )
   match eval_simple(e) {
@@ -1058,7 +1058,7 @@ test "cpe partial_or_res_true: residual || true => Or(res, true)" {
 ///|
 test "cpe partial_or_res_false: residual || false => Or(residual, Lit(false))" {
   let e = @ast.Expr::Or(
-    @ast.expr_unknown("a"),
+    @ast.unknown("a"),
     @ast.Expr::Lit(@ast.Literal::Bool(false)),
   )
   match eval_simple(e) {
@@ -1069,7 +1069,7 @@ test "cpe partial_or_res_false: residual || false => Or(residual, Lit(false))" {
 
 ///|
 test "cpe partial_or_res_res: residual || residual => Or(res, res)" {
-  let e = @ast.Expr::Or(@ast.expr_unknown("a"), @ast.expr_unknown("b"))
+  let e = @ast.Expr::Or(@ast.unknown("a"), @ast.unknown("b"))
   match eval_simple(e) {
     @ast.PartialValue::Residual(_) => @debug.assert_eq(true, true)
     _ => @debug.assert_eq(true, false)
@@ -1079,7 +1079,7 @@ test "cpe partial_or_res_res: residual || residual => Or(res, res)" {
 ///|
 test "cpe partial_or_res_err: residual || type_error => residual" {
   let e = @ast.Expr::Or(
-    @ast.expr_unknown("a"),
+    @ast.unknown("a"),
     @ast.Expr::BinaryApp(
       @ast.BinaryOp::Add,
       @ast.Expr::Lit(@ast.Literal::String("s")),
@@ -1097,7 +1097,7 @@ test "cpe if_semantics_residual_guard: if unknown then type_error else concrete"
   // Guard is unknown → branching can't be decided. Both branches preserved.
   // Even though the then branch would type-error, we don't evaluate it yet.
   let e = @ast.Expr::If(
-    @ast.expr_unknown("guard"),
+    @ast.unknown("guard"),
     @ast.Expr::BinaryApp(
       @ast.BinaryOp::Add,
       @ast.Expr::Lit(@ast.Literal::String("x")),
@@ -1135,7 +1135,7 @@ test "cpe if_semantics: if true then type_error else concrete => error propagate
 test "cpe partial_binop: unknown + 3 => residual" {
   let e = @ast.Expr::BinaryApp(
     @ast.BinaryOp::Add,
-    @ast.expr_unknown("a"),
+    @ast.unknown("a"),
     @ast.Expr::Lit(@ast.Literal::Long(3L)),
   )
   match eval_simple(e) {
@@ -1149,7 +1149,7 @@ test "cpe partial_binop: 3 + unknown => residual" {
   let e = @ast.Expr::BinaryApp(
     @ast.BinaryOp::Add,
     @ast.Expr::Lit(@ast.Literal::Long(3L)),
-    @ast.expr_unknown("b"),
+    @ast.unknown("b"),
   )
   match eval_simple(e) {
     @ast.PartialValue::Residual(_) => @debug.assert_eq(true, true)
@@ -1161,7 +1161,7 @@ test "cpe partial_binop: 3 + unknown => residual" {
 test "cpe partial_binop: unknown == 2 => residual" {
   let e = @ast.Expr::BinaryApp(
     @ast.BinaryOp::Eq,
-    @ast.expr_unknown("a"),
+    @ast.unknown("a"),
     @ast.Expr::Lit(@ast.Literal::Long(2L)),
   )
   match eval_simple(e) {
@@ -1175,7 +1175,7 @@ test "cpe partial_binop: 1 in unknown_set => residual" {
   let e = @ast.Expr::BinaryApp(
     @ast.BinaryOp::Contains,
     @ast.Expr::Lit(@ast.Literal::EntityUID(uid("T", "x"))),
-    @ast.expr_unknown("s"),
+    @ast.unknown("s"),
   )
   match eval_simple(e) {
     @ast.PartialValue::Residual(_) => @debug.assert_eq(true, true)
@@ -1191,7 +1191,7 @@ test "cpe partial_binop err_res: type_error + unknown => residual" {
   let e = @ast.Expr::BinaryApp(
     @ast.BinaryOp::Add,
     @ast.Expr::Lit(@ast.Literal::String("a")),
-    @ast.expr_unknown("b"),
+    @ast.unknown("b"),
   )
   match eval_simple(e) {
     @ast.PartialValue::Residual(_) => @debug.assert_eq(true, true)
@@ -1201,7 +1201,7 @@ test "cpe partial_binop err_res: type_error + unknown => residual" {
 
 ///|
 test "cpe partial_unop: !unknown => residual" {
-  let e = @ast.Expr::UnaryApp(@ast.UnaryOp::Not, @ast.expr_unknown("a"))
+  let e = @ast.Expr::UnaryApp(@ast.UnaryOp::Not, @ast.unknown("a"))
   match eval_simple(e) {
     @ast.PartialValue::Residual(@ast.Expr::UnaryApp(@ast.UnaryOp::Not, _)) =>
       @debug.assert_eq(true, true)
@@ -1211,7 +1211,7 @@ test "cpe partial_unop: !unknown => residual" {
 
 ///|
 test "cpe partial_is: unknown is EntityType => residual" {
-  let e = @ast.Expr::Is(@ast.expr_unknown("a"), @ast.EntityType("User"))
+  let e = @ast.Expr::Is(@ast.unknown("a"), @ast.EntityType("User"))
   match eval_simple(e) {
     @ast.PartialValue::Residual(_) => @debug.assert_eq(true, true)
     _ => @debug.assert_eq(true, false)
@@ -1221,7 +1221,7 @@ test "cpe partial_is: unknown is EntityType => residual" {
 ///|
 test "cpe partial_like: unknown like pattern => residual" {
   let p = @ast.Pattern::{ elements: [@ast.PatternElem::Wildcard] }
-  let e = @ast.Expr::Like(@ast.expr_unknown("a"), p)
+  let e = @ast.Expr::Like(@ast.unknown("a"), p)
   match eval_simple(e) {
     @ast.PartialValue::Residual(_) => @debug.assert_eq(true, true)
     _ => @debug.assert_eq(true, false)
@@ -1232,7 +1232,7 @@ test "cpe partial_like: unknown like pattern => residual" {
 test "cpe partial_set: [1, unknown, 3] => residual" {
   let e = @ast.Expr::Set([
     @ast.Expr::Lit(@ast.Literal::Long(1L)),
-    @ast.expr_unknown("a"),
+    @ast.unknown("a"),
     @ast.Expr::Lit(@ast.Literal::Long(3L)),
   ])
   match eval_simple(e) {
@@ -1453,7 +1453,7 @@ test "eval_expr: Slot raises" {
 
 ///|
 test "eval_expr: Unknown returns Residual" {
-  let e = @ast.expr_unknown("x")
+  let e = @ast.unknown("x")
   match eval_simple(e) {
     @ast.PartialValue::Residual(_) => @debug.assert_eq(true, true)
     _ => @debug.assert_eq(true, false)
@@ -1704,7 +1704,7 @@ test "eval_policy: residual condition" {
     conditions: [
       @ast.Condition::{
         kind: @ast.ConditionKind::When,
-        body: @ast.expr_unknown("x"),
+        body: @ast.unknown("x"),
       },
     ],
   }
@@ -1726,7 +1726,7 @@ test "eval_policy: unless residual condition" {
     conditions: [
       @ast.Condition::{
         kind: @ast.ConditionKind::Unless,
-        body: @ast.expr_unknown("y"),
+        body: @ast.unknown("y"),
       },
     ],
   }

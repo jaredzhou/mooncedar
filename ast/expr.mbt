@@ -122,9 +122,10 @@ pub(all) enum Expr {
 } derive(Debug, Eq)
 
 ///|
-/// Convenience constructor for an untyped Unknown (CPE classic).
-pub fn expr_unknown(name : String) -> Expr {
-  Unknown(name, None)
+/// Convenience constructor for Unknown.
+/// Call `unknown("x")` for an untyped unknown, or `unknown("x", typ=EntityType("User"))` for a typed one.
+pub fn unknown(name : String, typ? : Type) -> Expr {
+  Unknown(name, typ)
 }
 
 // ---------------------------------------------------------------------------
@@ -134,79 +135,79 @@ pub fn expr_unknown(name : String) -> Expr {
 // Leaf constructors (free functions)
 
 ///|
-pub fn expr_bool(b : Bool) -> Expr {
+pub fn bool(b : Bool) -> Expr {
   Lit(Bool(b))
 }
 
 ///|
-pub fn expr_long(l : Int64) -> Expr {
+pub fn long(l : Int64) -> Expr {
   Lit(Long(l))
 }
 
 ///|
-pub fn expr_str(s : String) -> Expr {
+pub fn str(s : String) -> Expr {
   Lit(String(s))
 }
 
 ///|
-pub fn expr_euid(type_ : String, id : String) -> Expr {
+pub fn euid(type_ : String, id : String) -> Expr {
   Lit(EntityUID(EntityUID::{ type_, id }))
 }
 
 ///|
-pub fn expr_principal() -> Expr {
+pub fn principal() -> Expr {
   Var(Principal)
 }
 
 ///|
-pub fn expr_action() -> Expr {
+pub fn action() -> Expr {
   Var(Action)
 }
 
 ///|
-pub fn expr_resource() -> Expr {
+pub fn resource() -> Expr {
   Var(Resource)
 }
 
 ///|
-pub fn expr_context() -> Expr {
+pub fn context() -> Expr {
   Var(Context)
 }
 
 // Non-chaining constructors (free functions)
 
 ///|
-pub fn expr_if(cond : Expr, t : Expr, e : Expr) -> Expr {
+pub fn if_(cond : Expr, t : Expr, e : Expr) -> Expr {
   If(cond, t, e)
 }
 
 ///|
-pub fn expr_not(e : Expr) -> Expr {
+pub fn not_(e : Expr) -> Expr {
   UnaryApp(Not, e)
 }
 
 ///|
-pub fn expr_neg(e : Expr) -> Expr {
+pub fn neg(e : Expr) -> Expr {
   UnaryApp(Neg, e)
 }
 
 ///|
-pub fn expr_is_empty(e : Expr) -> Expr {
+pub fn is_empty(e : Expr) -> Expr {
   UnaryApp(IsEmpty, e)
 }
 
 ///|
-pub fn expr_set(elements : Array[Expr]) -> Expr {
+pub fn set(elements : Array[Expr]) -> Expr {
   Set(elements)
 }
 
 ///|
-pub fn expr_record(pairs : Array[(String, Expr)]) -> Expr {
+pub fn record(pairs : Array[(String, Expr)]) -> Expr {
   Record(pairs)
 }
 
 ///|
-pub fn expr_ext_call(name : Name, args : Array[Expr]) -> Expr {
+pub fn ext_call(name : Name, args : Array[Expr]) -> Expr {
   ExtensionApp(name, args)
 }
 

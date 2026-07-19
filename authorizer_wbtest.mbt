@@ -26,31 +26,23 @@ fn uid(type_ : String, id : String) -> EntityUID {
 
 ///|
 test "is_authorized: single permit" {
-  let p = Policy::{
-    id: "p1",
-    effect: PolicyEffect::Permit,
-    annotations: [],
-    principal: ScopeConstraint::All,
-    action: ScopeConstraint::All,
-    resource: ScopeConstraint::All,
-    conditions: [],
-  }
-  let result = is_authorized(empty_req(), [p].iter(), empty_store())
+  let policies = parse_policies(
+    (
+      #|permit(principal, action, resource);
+    ),
+  )
+  let result = is_authorized(empty_req(), policies.iter(), empty_store())
   @debug.assert_eq(true, result.decision == Decision::Allow)
 }
 
 ///|
 test "is_authorized: single forbid" {
-  let p = Policy::{
-    id: "p1",
-    effect: PolicyEffect::Forbid,
-    annotations: [],
-    principal: ScopeConstraint::All,
-    action: ScopeConstraint::All,
-    resource: ScopeConstraint::All,
-    conditions: [],
-  }
-  let result = is_authorized(empty_req(), [p].iter(), empty_store())
+  let policies = parse_policies(
+    (
+      #|forbid(principal, action, resource);
+    ),
+  )
+  let result = is_authorized(empty_req(), policies.iter(), empty_store())
   @debug.assert_eq(true, result.decision == Decision::Deny)
 }
 
@@ -62,65 +54,33 @@ test "is_authorized: no policies — Deny" {
 
 ///|
 test "is_authorized: permit + forbid — Deny wins" {
-  let permit_p = Policy::{
-    id: "allow",
-    effect: PolicyEffect::Permit,
-    annotations: [],
-    principal: ScopeConstraint::All,
-    action: ScopeConstraint::All,
-    resource: ScopeConstraint::All,
-    conditions: [],
-  }
-  let forbid_p = Policy::{
-    id: "deny",
-    effect: PolicyEffect::Forbid,
-    annotations: [],
-    principal: ScopeConstraint::All,
-    action: ScopeConstraint::All,
-    resource: ScopeConstraint::All,
-    conditions: [],
-  }
-  let result = is_authorized(
-    empty_req(),
-    [permit_p, forbid_p].iter(),
-    empty_store(),
+  let policies = parse_policies(
+    (
+      #|permit(principal, action, resource);forbid(principal, action, resource);
+    ),
   )
+  let result = is_authorized(empty_req(), policies.iter(), empty_store())
   @debug.assert_eq(true, result.decision == Decision::Deny)
 }
 
 ///|
 test "is_authorized: unrelated policies" {
-  let p1 = Policy::{
-    id: "p1",
-    effect: PolicyEffect::Permit,
-    annotations: [],
-    principal: ScopeConstraint::Eq(uid("X", "x")),
-    action: ScopeConstraint::All,
-    resource: ScopeConstraint::All,
-    conditions: [],
-  }
-  let result = is_authorized(empty_req(), [p1].iter(), empty_store())
+  let policies = parse_policies(
+    (
+      #|permit(principal == X::"x", action, resource);
+    ),
+  )
+  let result = is_authorized(empty_req(), policies.iter(), empty_store())
   @debug.assert_eq(true, result.decision == Decision::Deny)
 }
 
 ///|
 test "is_authorized: condition error captured" {
-  let p = Policy::{
-    id: "bad",
-    effect: PolicyEffect::Permit,
-    annotations: [],
-    principal: ScopeConstraint::All,
-    action: ScopeConstraint::All,
-    resource: ScopeConstraint::All,
-    conditions: [
-      Condition::{
-        kind: @ast.ConditionKind::When,
-        body: Expr::ExtensionApp(@ast.Name::{ ns: ["ip"], name: "parse" }, [
-          Expr::Lit(@ast.Literal::String("x")),
-        ]),
-      },
-    ],
-  }
+  let p = default_policy().with_id("bad").permit().when_(
+    Expr::ExtensionApp(@ast.Name::{ ns: ["ip"], name: "parse" }, [
+      Expr::Lit(@ast.Literal::String("x")),
+    ]),
+  )
   let result = is_authorized(empty_req(), [p].iter(), empty_store())
   @debug.assert_eq(true, result.decision == Decision::Deny)
   @debug.assert_eq(1, result.errors.length())
@@ -128,17 +88,13 @@ test "is_authorized: condition error captured" {
 
 ///|
 test "is_authorized: equivalent to evaluate + concretize" {
-  let p = Policy::{
-    id: "p1",
-    effect: PolicyEffect::Permit,
-    annotations: [],
-    principal: ScopeConstraint::All,
-    action: ScopeConstraint::All,
-    resource: ScopeConstraint::All,
-    conditions: [],
-  }
-  let via_evaluate = evaluate(empty_req(), [p].iter(), empty_store()).concretize()
-  let via_direct = is_authorized(empty_req(), [p].iter(), empty_store())
+  let policies = parse_policies(
+    (
+      #|permit(principal, action, resource);
+    ),
+  )
+  let via_evaluate = evaluate(empty_req(), policies.iter(), empty_store()).concretize()
+  let via_direct = is_authorized(empty_req(), policies.iter(), empty_store())
   @debug.assert_eq(true, via_evaluate.decision == via_direct.decision)
 }
 
@@ -148,17 +104,18 @@ test "is_authorized: equivalent to evaluate + concretize" {
 
 ///|
 test "evaluate: no residuals in concrete policies" {
-  let p = default_policy()
-    .with_id("p1")
-    .permit()
-    .when_(Expr::Lit(@ast.Literal::Bool(true)))
-  let answer = evaluate(empty_req(), [p].iter(), empty_store())
+  let policies = parse_policies(
+    (
+      #|@id("p1") permit(principal, action, resource) when { true };
+    ),
+  )
+  let answer = evaluate(empty_req(), policies.iter(), empty_store())
   assert_true(answer.satisfied is [satisfied] && satisfied.policy_id == "p1")
 }
 
 ///|
 test "evaluate: residual policy captured" {
-  let p = default_policy().with_id("p1").permit().when_(expr_unknown("x"))
+  let p = default_policy().with_id("p1").permit().when_(unknown("x"))
   let answer = evaluate(empty_req(), [p].iter(), empty_store())
   assert_true(
     answer.residuals is [residual] && residual.expr is Expr::Unknown("x", _),
@@ -167,12 +124,11 @@ test "evaluate: residual policy captured" {
 
 ///|
 test "evaluate: unknown PARC captured as residual" {
-  let p = default_policy()
-    .with_id("p1")
-    .permit()
-    .principal_eq("User", "alice")
-    .action_eq("Action", "v")
-    .resource_eq("Photo", "x")
+  let policies = parse_policies(
+    (
+      #|@id("p1") permit(principal == User::"alice", action == Action::"v", resource == Photo::"x");
+    ),
+  )
 
   let req = Request::{
     principal: @evaluator.unknown_uid("User"),
@@ -180,7 +136,7 @@ test "evaluate: unknown PARC captured as residual" {
     resource: @evaluator.concrete_uid("Photo", "x"),
     context: Context::Concrete(Value::Record(Map([]))),
   }
-  let answer = evaluate(req, [p].iter(), empty_store())
+  let answer = evaluate(req, policies.iter(), empty_store())
   guard answer.residuals is [residual] else { return }
   assert_true(
     residual.expr is Expr::BinaryApp(Eq, left, right) &&
@@ -196,17 +152,7 @@ test "evaluate: unknown PARC captured as residual" {
 
 ///|
 test "concretize: residual policies produce Deny" {
-  let p = Policy::{
-    id: "p1",
-    effect: PolicyEffect::Permit,
-    annotations: [],
-    principal: ScopeConstraint::All,
-    action: ScopeConstraint::All,
-    resource: ScopeConstraint::All,
-    conditions: [
-      Condition::{ kind: @ast.ConditionKind::When, body: expr_unknown("x") },
-    ],
-  }
+  let p = default_policy().with_id("p1").permit().when_(unknown("x"))
   let result = is_authorized(empty_req(), [p].iter(), empty_store())
   @debug.assert_eq(true, result.decision == Decision::Deny)
 }
@@ -303,21 +249,22 @@ test "reauthorize cat1: unknown principal not resolved" {
 
 ///|
 test "reauthorize cat2: unknown context attr resolved by mapping" {
-  let p = default_policy()
-    .with_id("p1")
-    .permit()
-    .when_(expr_context().access("is_admin"))
+  let policies = parse_policies(
+    (
+      #|@id("p1") permit(principal, action, resource) when { context.is_admin };
+    ),
+  )
   let req = Request::{
     principal: @evaluator.concrete_uid("User", "alice"),
     action: @evaluator.concrete_uid("Action", "view"),
     resource: @evaluator.concrete_uid("Photo", "x"),
     context: Context::Partial(
-      expr_record([("is_admin", Expr::Unknown("c", None))]),
+      record([("is_admin", Expr::Unknown("c", None))]),
     ),
   }
 
   // context.is_admin → records attribute "c" is unknown → residual
-  let answer1 = evaluate(req, [p].iter(), empty_store())
+  let answer1 = evaluate(req, policies.iter(), empty_store())
   guard answer1.residuals is [r1] else { return }
   assert_true(r1.expr is Expr::Unknown("c", None))
 
@@ -335,10 +282,11 @@ test "reauthorize cat2: unknown context attr resolved by mapping" {
 /// 整体未知没有字段可以"投影"，residual 保留整个 GetAttr 结构。
 /// 字段级 mapping {"c" → true} 无法命中（residual 里没有 Unknown("c") 节点）。
 test "reauthorize cat2: full context unknown — field mapping cannot resolve" {
-  let p = default_policy()
-    .with_id("p1")
-    .permit()
-    .when_(expr_context().access("is_admin"))
+  let policies = parse_policies(
+    (
+      #|@id("p1") permit(principal, action, resource) when { context.is_admin };
+    ),
+  )
   let req = Request::{
     principal: @evaluator.concrete_uid("User", "alice"),
     action: @evaluator.concrete_uid("Action", "view"),
@@ -347,7 +295,7 @@ test "reauthorize cat2: full context unknown — field mapping cannot resolve" {
   }
 
   // context 整体未知 → GetAttr(Unknown("context"), "is_admin")
-  let answer1 = evaluate(req, [p].iter(), empty_store())
+  let answer1 = evaluate(req, policies.iter(), empty_store())
   guard answer1.residuals is [r1] else { return }
   assert_true(
     r1.expr is Expr::GetAttr(Expr::Unknown("context", None), "is_admin"),
@@ -367,10 +315,11 @@ test "reauthorize cat2: full context unknown — field mapping cannot resolve" {
 /// context 整体未知时，用 context 级 mapping 替换整个 Unknown("context") 节点。
 /// {"context" → Record({"is_admin": true})} → 成功替换并解析。
 test "reauthorize cat2: full context unknown — resolved by context-level mapping" {
-  let p = default_policy()
-    .with_id("p1")
-    .permit()
-    .when_(expr_context().access("is_admin"))
+  let policies = parse_policies(
+    (
+      #|@id("p1") permit(principal, action, resource) when { context.is_admin };
+    ),
+  )
   let req = Request::{
     principal: @evaluator.concrete_uid("User", "alice"),
     action: @evaluator.concrete_uid("Action", "view"),
@@ -378,7 +327,7 @@ test "reauthorize cat2: full context unknown — resolved by context-level mappi
     context: Context::Unknown,
   }
 
-  let answer1 = evaluate(req, [p].iter(), empty_store())
+  let answer1 = evaluate(req, policies.iter(), empty_store())
   guard answer1.residuals is [r1] else { return }
   assert_true(
     r1.expr is Expr::GetAttr(Expr::Unknown("context", None), "is_admin"),
@@ -398,21 +347,22 @@ test "reauthorize cat2: full context unknown — resolved by context-level mappi
 /// 访问 context 中不存在的 key → EntityNotFound error。
 /// Context 是 Partial({"is_admin": unknown("c")})，策略引用 context.foo。
 test "reauthorize cat2: nonexistent context key → error" {
-  let p = default_policy()
-    .with_id("p1")
-    .permit()
-    .when_(expr_context().access("foo"))
+  let policies = parse_policies(
+    (
+      #|@id("p1") permit(principal, action, resource) when { context.foo };
+    ),
+  )
   let req = Request::{
     principal: @evaluator.concrete_uid("User", "alice"),
     action: @evaluator.concrete_uid("Action", "view"),
     resource: @evaluator.concrete_uid("Photo", "x"),
     context: Context::Partial(
-      expr_record([("is_admin", Expr::Unknown("c", None))]),
+      record([("is_admin", Expr::Unknown("c", None))]),
     ),
   }
 
   // foo 不在 context record 中 → EntityNotFound error
-  let answer1 = evaluate(req, [p].iter(), empty_store())
+  let answer1 = evaluate(req, policies.iter(), empty_store())
   assert_true(answer1.residuals is [])
   assert_true(answer1.satisfied is [])
   guard answer1.errors is [err] else { return }
@@ -425,7 +375,7 @@ test "reauthorize cat2: nonexistent context key → error" {
 
 ///|
 test "reauthorize cat3: unknown resolved by mapping" {
-  let p = default_policy().with_id("p1").permit().when_(expr_unknown("flag"))
+  let p = default_policy().with_id("p1").permit().when_(unknown("flag"))
 
   let answer1 = evaluate(empty_req(), [p].iter(), empty_store())
   guard answer1.residuals is [r1] else { return }
@@ -441,7 +391,7 @@ test "reauthorize cat3: unknown resolved by mapping" {
 
 ///|
 test "reauthorize cat3: unknown not in mapping stays residual" {
-  let p = default_policy().with_id("p1").permit().when_(expr_unknown("flag"))
+  let p = default_policy().with_id("p1").permit().when_(unknown("flag"))
 
   let answer1 = evaluate(empty_req(), [p].iter(), empty_store())
   guard answer1.residuals is [r1] else { return }
@@ -576,11 +526,11 @@ test "reauthorize cat4: forbid resolves to deny" {
 
 ///|
 test "reauthorize cat4: satisfied carries forward" {
-  let p_sat = default_policy().with_id("sat").permit()
-  let p_res = default_policy()
-    .with_id("res")
-    .permit()
-    .when_(expr_euid("User", "alice").in_(expr_euid("Team", "admins")))
+  let policies = parse_policies(
+    (
+      #|@id("sat") permit(principal, action, resource); @id("res") permit(principal, action, resource) when { User::"alice" in Team::"admins" };
+    ),
+  )
   let req = Request::{
     principal: @evaluator.concrete_uid("User", "alice"),
     action: @evaluator.concrete_uid("Action", "view"),
@@ -589,7 +539,7 @@ test "reauthorize cat4: satisfied carries forward" {
   }
 
   // First eval: one satisfied (no conditions), one residual (entity missing)
-  let answer1 = evaluate(req, [|p_sat, p_res|], empty_store())
+  let answer1 = evaluate(req, policies.iter(), empty_store())
   assert_true(answer1.satisfied is [s] && s.policy_id == "sat")
   guard answer1.residuals is [r1] else { return }
   assert_true(
@@ -621,11 +571,11 @@ test "reauthorize cat4: satisfied carries forward" {
 
 ///|
 test "reauthorize combined: mapping + entity expansion" {
-  let p1 = default_policy().with_id("p1").permit().when_(expr_unknown("x"))
+  let p1 = default_policy().with_id("p1").permit().when_(unknown("x"))
   let p2 = default_policy()
     .with_id("p2")
     .permit()
-    .when_(expr_euid("User", "alice").in_(expr_euid("Team", "admins")))
+    .when_(euid("User", "alice").in_(euid("Team", "admins")))
   let req = Request::{
     principal: @evaluator.concrete_uid("User", "alice"),
     action: @evaluator.concrete_uid("Action", "view"),

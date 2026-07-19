@@ -98,84 +98,87 @@ pub fn stringify_expr(e : @ast.Expr) -> String {
 
 ///|
 /// Leaf constructors
-pub fn expr_bool(b : Bool) -> @ast.Expr {
-  @ast.expr_bool(b)
+pub fn bool(b : Bool) -> @ast.Expr {
+  @ast.bool(b)
 }
 
 ///|
-pub fn expr_long(l : Int64) -> @ast.Expr {
-  @ast.expr_long(l)
+pub fn long(l : Int64) -> @ast.Expr {
+  @ast.long(l)
 }
 
 ///|
-pub fn expr_str(s : String) -> @ast.Expr {
-  @ast.expr_str(s)
+pub fn str(s : String) -> @ast.Expr {
+  @ast.str(s)
 }
 
 ///|
-pub fn expr_euid(type_ : String, id : String) -> @ast.Expr {
-  @ast.expr_euid(type_, id)
+pub fn euid(type_ : String, id : String) -> @ast.Expr {
+  @ast.euid(type_, id)
 }
 
 ///|
-pub fn expr_principal() -> @ast.Expr {
-  @ast.expr_principal()
+pub fn principal() -> @ast.Expr {
+  @ast.principal()
 }
 
 ///|
-pub fn expr_action() -> @ast.Expr {
-  @ast.expr_action()
+pub fn action() -> @ast.Expr {
+  @ast.action()
 }
 
 ///|
-pub fn expr_resource() -> @ast.Expr {
-  @ast.expr_resource()
+pub fn resource() -> @ast.Expr {
+  @ast.resource()
 }
 
 ///|
-pub fn expr_context() -> @ast.Expr {
-  @ast.expr_context()
+pub fn context() -> @ast.Expr {
+  @ast.context()
 }
 
 ///|
-pub fn expr_unknown(name : String) -> @ast.Expr {
-  @ast.expr_unknown(name)
+pub fn unknown(name : String, typ? : @ast.Type) -> @ast.Expr {
+  match typ {
+    Some(t) => @ast.unknown(name, typ=t)
+    None => @ast.unknown(name)
+  }
 }
 
 ///|
 /// Non-chaining constructors
-pub fn expr_if(cond : @ast.Expr, t : @ast.Expr, e : @ast.Expr) -> @ast.Expr {
-  @ast.expr_if(cond, t, e)
+pub fn if_(cond : @ast.Expr, t : @ast.Expr, e : @ast.Expr) -> @ast.Expr {
+  @ast.if_(cond, t, e)
 }
 
 ///|
-pub fn expr_not(e : @ast.Expr) -> @ast.Expr {
-  @ast.expr_not(e)
+pub fn not_(e : @ast.Expr) -> @ast.Expr {
+  @ast.not_(e)
 }
 
 ///|
-pub fn expr_neg(e : @ast.Expr) -> @ast.Expr {
-  @ast.expr_neg(e)
+pub fn neg(e : @ast.Expr) -> @ast.Expr {
+  @ast.neg(e)
 }
 
 ///|
-pub fn expr_is_empty(e : @ast.Expr) -> @ast.Expr {
-  @ast.expr_is_empty(e)
+pub fn is_empty(e : @ast.Expr) -> @ast.Expr {
+  @ast.is_empty(e)
 }
 
 ///|
-pub fn expr_set(elements : Array[@ast.Expr]) -> @ast.Expr {
-  @ast.expr_set(elements)
+pub fn set(elements : Array[@ast.Expr]) -> @ast.Expr {
+  @ast.set(elements)
 }
 
 ///|
-pub fn expr_record(pairs : Array[(String, @ast.Expr)]) -> @ast.Expr {
-  @ast.expr_record(pairs)
+pub fn record(pairs : Array[(String, @ast.Expr)]) -> @ast.Expr {
+  @ast.record(pairs)
 }
 
 ///|
-pub fn expr_ext_call(name : @ast.Name, args : Array[@ast.Expr]) -> @ast.Expr {
-  @ast.expr_ext_call(name, args)
+pub fn ext_call(name : @ast.Name, args : Array[@ast.Expr]) -> @ast.Expr {
+  @ast.ext_call(name, args)
 }
 
 // ---------------------------------------------------------------------------
